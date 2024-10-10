@@ -39,34 +39,68 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Send Message'),
+        title: const Text('Send Message'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
-              TextField(
+               TextField(
                 controller: _phoneController,
-                decoration: InputDecoration(
-                  labelText: 'Phone Number',
+                decoration: const InputDecoration(
+                  labelText: 'Software',
                   border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.phone,
               ),
-              SizedBox(height: 16.0),
+              SizedBox(height: 10),
+                TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Code',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+              ), SizedBox(height: 10),
+               TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Login',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+              ), SizedBox(height: 10),
+               TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+              ), SizedBox(height: 10),
+               TextField(
+                controller: _phoneController,
+                decoration: const InputDecoration(
+                  labelText: 'type',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.phone,
+              ),
+              SizedBox(height: 10),
+           
               TextField(
                 controller: _messageController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Enter Message',
                   border: OutlineInputBorder(),
                 ),
                 maxLines: 5, // Allow multiple lines for the message
               ),
-              SizedBox(height: 16.0),
+             SizedBox(height: 10),
               DropdownButtonFormField<String>(
                 value: _selectedSim,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Select SIM',
                   border: OutlineInputBorder(),
                 ),
@@ -87,13 +121,13 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                   });
                 },
               ),
-              SizedBox(height: 16.0),
+              const SizedBox(height: 16.0),
               ElevatedButton(
                 onPressed: () async {
                   sendMessageUsingSim(simCard);
                   // Clear the fields after sending
                 },
-                child: Text('Send Message'),
+                child: const Text('Send Message'),
               ),
             ],
           ),
