@@ -1,15 +1,20 @@
 package com.example.sms_sender
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.telephony.SmsManager
+import android.telephony.SubscriptionManager
+import android.content.Context
+import android.util.Log
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.FlutterEngine
-import android.telephony.SubscriptionManager
-import android.content.Context
-import android.util.Log  // Add this to log SIM slot information
 
-class MainActivity: FlutterActivity() {
+class MainActivity : FlutterActivity() {
     private val CHANNEL = "sms_sender"
+    private val SMS_PERMISSION_REQUEST_CODE = 101
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -21,12 +26,45 @@ class MainActivity: FlutterActivity() {
                 val simSlot: Int? = call.argument("simSlot")
 
                 if (recipient != null && message != null && simSlot != null) {
-                    sendSmsUsingSimSlot(recipient, message, simSlot, result)
+                    // Check permissions before sending SMS
+                    if (checkPermissions()) {
+                        sendSmsUsingSimSlot(recipient, message, simSlot, result)
+                    } else {
+                        requestPermissions()
+                        result.error("PERMISSION_ERROR", "SMS or phone state permissions not granted", null)
+                    }
                 } else {
                     result.error("INVALID_ARGUMENT", "Recipient, message, or simSlot was null", null)
                 }
             } else {
                 result.notImplemented()
+            }
+        }
+    }
+
+    private fun checkPermissions(): Boolean {
+        val sendSmsPermission = ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS)
+        val readPhoneStatePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE)
+        return sendSmsPermission == PackageManager.PERMISSION_GRANTED &&
+               readPhoneStatePermission == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun requestPermissions() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.SEND_SMS, Manifest.permission.READ_PHONE_STATE),
+            SMS_PERMISSION_REQUEST_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == SMS_PERMISSION_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, proceed to handle SMS sending
+                Log.d("PERMISSION", "SMS and phone state permissions granted")
+            } else {
+                Log.d("PERMISSION", "Permissions denied")
             }
         }
     }
@@ -47,6 +85,7 @@ class MainActivity: FlutterActivity() {
                 val subscriptionId = subscriptionInfoList[simSlot].subscriptionId
                 val smsManager = SmsManager.getSmsManagerForSubscriptionId(subscriptionId)
 
+                // Send the SMS
                 smsManager.sendTextMessage(recipient, null, message, null, null)
                 result.success("Message sent via SIM $simSlot")
             } else {
