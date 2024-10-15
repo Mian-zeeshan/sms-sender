@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-
+import 'dart:developer';
+import 'package:get/get.dart';
+import 'package:sms_sender/Controllers/LoginController.dart';
 class SmsSender {
+
+  LoginController _loginController = Get.find();
   static const platform = MethodChannel('sms_sender');
 
   // Method to send SMS using the specified SIM slot (1 or 2)
@@ -14,14 +18,17 @@ class SmsSender {
         'simSlot': simSlot,  // Pass SIM slot as a parameter
       }).then((value) {
 
-           ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('$value successfully sent message')),
-                );
-        print("sucess");
-        print(value); 
+_loginController.updateList(recipient);
+
+
+        //    ScaffoldMessenger.of(context).showSnackBar(
+        //           SnackBar(content: Text('$value successfully sent message')),
+        //         );
+        // print("sucess");
+        // print(value); 
       },);
     } on PlatformException catch (e) {
-      print("Failed to send SMS: ${e.message}");
+      log("Failed to send SMS jnjknedjk : ${e.message}");
     }
   }
 }
