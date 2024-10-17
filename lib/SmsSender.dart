@@ -28,6 +28,7 @@ _loginController.updateList(recipient);
         // print(value); 
       },);
     } on PlatformException catch (e) {
+      // Get.snackbar("Error", e.message??"",duration: Duration(seconds: 3));
       log("Failed to send SMS jnjknedjk : ${e.message}");
     }
   }

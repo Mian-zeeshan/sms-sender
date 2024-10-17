@@ -92,7 +92,7 @@ class ThemeController extends GetxController {
     }
 
     if (theme == "0") {
-      primaryColor = Color(0xffEE671A).withOpacity(0.8);
+      primaryColor = Color(0xffEE671A);
       secondaryColor = secondaryColor;
       textColor = lightTextColor;
       buttonColor = lightButtonColor;

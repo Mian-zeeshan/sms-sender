@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-
+import 'package:firebase_core/firebase_core.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:sms_sender/Controllers/LoginController.dart';
@@ -14,7 +14,8 @@ import 'package:sms_sender/splash_page/SplashScreen.dart';
 
 
 void main() async {
-
+    WidgetsFlutterBinding.ensureInitialized();
+ await Firebase.initializeApp();
   await GetStorage.init();
 
   //** Init Controllers

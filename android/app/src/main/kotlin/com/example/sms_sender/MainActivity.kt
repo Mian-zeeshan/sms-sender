@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.embedding.engine.FlutterEngine
+import android.widget.Toast
 
 class MainActivity : FlutterActivity() {
     private val CHANNEL = "sms_sender"
@@ -63,8 +64,10 @@ class MainActivity : FlutterActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted, proceed to handle SMS sending
                 Log.d("PERMISSION", "SMS and phone state permissions granted")
+               
             } else {
                 Log.d("PERMISSION", "Permissions denied")
+                 Toast.makeText(this, "Permissions denied", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -88,10 +91,16 @@ class MainActivity : FlutterActivity() {
                 // Send the SMS
                 smsManager.sendTextMessage(recipient, null, message, null, null)
                 result.success("Message sent via SIM $simSlot")
+           
+
+
             } else {
+               
+                Toast.makeText(this, "Invalid SIM slot number", Toast.LENGTH_SHORT).show()
                 result.error("SIM_SLOT_ERROR", "Invalid SIM slot number", null)
             }
         } catch (e: Exception) {
+            Toast.makeText(this, "Failed to send SMS: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
             result.error("ERROR", "Failed to send SMS: ${e.localizedMessage}", e)
         }
     }

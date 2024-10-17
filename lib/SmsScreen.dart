@@ -5,9 +5,9 @@ import 'package:sms_sender/Controllers/ThemeController.dart';
 import 'package:sms_sender/Model/PhoneNumbertModel.dart';
 import 'package:sms_sender/SmsSender.dart';
 import 'package:get/get.dart';
-
+import 'package:firebase_database/firebase_database.dart';
 import 'dart:developer';
-
+import 'package:permission_handler/permission_handler.dart';
 import 'package:sms_sender/Widgets/SuccessDialogBox.dart';
 
 class SimSelectionScreen extends StatefulWidget {
@@ -41,14 +41,40 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
     messageFocus.unfocus();
   }
 
-  sendMessageUsingSim(int simSlot, String phn) async {
+  Future<void> requestSmsPermissions() async {
+    // Request SEND_SMS permission
+    PermissionStatus sendSmsPermissionStatus = await Permission.sms.request();
+
+    // Request READ_SMS permission
+    PermissionStatus readSmsPermissionStatus = await Permission.sms.request();
+
+    // Request READ_PHONE_STATE permission
+    PermissionStatus readPhoneStatePermissionStatus =
+        await Permission.phone.request();
+
+    if (sendSmsPermissionStatus.isGranted &&
+        readSmsPermissionStatus.isGranted &&
+        readPhoneStatePermissionStatus.isGranted) {
+      print("All SMS and Phone permissions granted");
+      // You can now send and read SMS, or access phone state
+    } else {
+      print("One or more permissions denied");
+      // Handle the case where one or more permissions are denied
+    }
+  }
+
+  sendMessageUsingSim(
+      int simSlot, String phn, PhoneNumberModel phoneNumber) async {
+    String updatedMessage = _messageController.text
+        .replaceAll("#NAME#", phoneNumber.name ?? "")
+        .replaceAll("#AMT#", phoneNumber.amt ?? "");
     try {
       SmsSender smsSender = SmsSender();
 
       await smsSender
           .sendSMS(
               "${phn}", // The recipient's phone number
-              "${_messageController.text.toString()}", // The message
+              updatedMessage,
               simSlot,
               context // Specify the SIM slot (1 or 2)
               )
@@ -62,6 +88,34 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
     } catch (e) {
       print(e.toString());
     }
+  }
+ writeAppRunStatus() async {
+  // Get a reference to the database
+  DatabaseReference ref = FirebaseDatabase.instance.ref("appStatus");
+
+  // Set the value of the 'isAppRun' field to true
+  await ref.set({
+    "isAppRun": true
+  }).then((_) {
+    print("Data added successfully!");
+  }).catchError((error) {
+    print("Failed to add data: $error");
+  });
+}
+  @override
+  void initState() {
+    requestSmsPermissions();
+    if (_loginController.loginModel.code != null) {
+      soft.text = "${_loginController.loginModel.soft}";
+      code.text = "${_loginController.loginModel.code}";
+      login.text = "${_loginController.loginModel.login}";
+      pass.text = "${_loginController.loginModel.pass}";
+      type.text = "${_loginController.loginModel.type}";
+      _selectedSim="${_loginController.loginModel.sim}";
+    }
+
+    // TODO: implement initState
+    super.initState();
   }
 
   @override
@@ -97,8 +151,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                             children: [
                               Expanded(
                                 child: TextField(
-
-                                  
                                   focusNode: softFocus,
                                   controller: soft,
                                   decoration: InputDecoration(
@@ -123,7 +175,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                         borderSide: BorderSide(
                                             color: theme.primaryColor)),
                                   ),
-                                  
                                 ),
                               ),
                               SizedBox(
@@ -155,7 +206,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                         borderSide: BorderSide(
                                             color: theme.primaryColor)),
                                   ),
-                                  
                                 ),
                               ),
                             ],
@@ -190,7 +240,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                         borderSide: BorderSide(
                                             color: theme.primaryColor)),
                                   ),
-                                  
                                 ),
                               ),
                               SizedBox(
@@ -222,7 +271,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                         borderSide: BorderSide(
                                             color: theme.primaryColor)),
                                   ),
-                                  
                                 ),
                               ),
                             ],
@@ -257,7 +305,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                         borderSide: BorderSide(
                                             color: theme.primaryColor)),
                                   ),
-                                  
                                 ),
                               ),
                               SizedBox(
@@ -342,7 +389,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                           const SizedBox(height: 20.0),
 
                           GestureDetector(
-                            onTap: () async {
+                            onTap:() async {
                               unfocusAllFields();
 
                               if (soft.text.isEmpty) {
@@ -377,7 +424,8 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                         msg: _messageController.text.toString(),
                                         pass: pass.text.toString(),
                                         soft: soft.text.toString(),
-                                        type: type.text.toString());
+                                        type: type.text.toString(),
+                                        sim: _selectedSim);
 
                                 if (phoneNumbers.isNotEmpty) {
                                   await showPhoneNumbersDialog(
@@ -500,8 +548,8 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
 
                       try {
                         for (int i = 0; i < phoneNumbers.length; i++) {
-                          await sendMessageUsingSim(
-                              simCard, phoneNumbers[i].phone ?? "");
+                          await sendMessageUsingSim(simCard,
+                              phoneNumbers[i].phone ?? "", phoneNumbers[i]);
                           print("dgjcvjhbdjs  " + i.toString());
                         }
                       } catch (e) {
@@ -509,7 +557,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                         print(
                             "khdfbcjhbfhjdebcv dfvjkhbdfjhvbkjhfb ${loginCntr.sendMessagePhoneList.length}");
                         Navigator.of(context).pop();
-                        showSuccessDialog(
+                       if(loginCntr.sendMessagePhoneList.isNotEmpty) showSuccessDialog(
                             context, loginCntr.sendMessagePhoneList);
                         EasyLoading.dismiss();
                       }

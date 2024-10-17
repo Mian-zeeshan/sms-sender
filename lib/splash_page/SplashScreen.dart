@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:get/get.dart';
+import 'package:sms_sender/Controllers/LoginController.dart';
 import 'package:sms_sender/Controllers/ThemeController.dart';
 
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -19,16 +20,21 @@ class SplashScreen extends StatefulWidget{
 
 class SplashScreenState extends State<SplashScreen> {
 
-
+LoginController _loginController=Get.find();
 
   @override
   void initState() {
     super.initState();
 
     Timer.periodic(const Duration(seconds: 3), (timer) async {
-      timer.cancel();
+ 
 
-      Get.offAllNamed(homeRoute);
+      if(_loginController.isAppRun){
+             timer.cancel();
+  Get.offAllNamed(homeRoute);
+      }
+
+    
   
     });
   }
