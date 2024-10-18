@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:sms_sender/Controllers/ThemeController.dart';
+import 'package:sms_sender/Model/PhoneNumbertModel.dart';
 class SuccessDialog extends StatelessWidget {
-  final List<String> phoneNumbers;
+  final List<PhoneNumberModel> phoneNumbers;
 
   SuccessDialog({required this.phoneNumbers});
 
@@ -42,18 +43,34 @@ class SuccessDialog extends StatelessWidget {
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 5),
                 const Divider(thickness: 1),
                Expanded(child: SingleChildScrollView(
                  child: Column(children: [
-                             for(int i = 0 ; i< phoneNumbers.length; i++)    ListTile(
-                          leading: const Icon(Icons.phone, color: Colors.green),
-                          title: Text(phoneNumbers[i]),
-                        )
+                             for(int i = 0 ; i< phoneNumbers.length; i++)    Padding(
+                               padding:  EdgeInsets.symmetric(horizontal: 20,vertical: 10),
+                               child: Row(
+                                children: [
+                                  Icon(Icons.phone_outlined,color: theme.textColor.withOpacity(0.5),size: 20,),
+                                  const SizedBox(width: 5,),
+                                  Text(
+                                    phoneNumbers[i].phone ?? '',
+                                    style: TextStyle(
+                                        color: theme.textColor),
+                                  ),
+                                  const SizedBox(width: 5),
+                                    Text(
+                                   "(${ phoneNumbers[i].name ?? ''})",
+                                    style: TextStyle(
+                                        color: theme.textColor.withOpacity(0.5)),
+                                  ),
+                                ],
+                                                           ),
+                             ),
                  ],),
                )),
                 const Divider(thickness: 1),
-                const SizedBox(height: 10),
+                // const SizedBox(height: 5),
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   child: const Text(

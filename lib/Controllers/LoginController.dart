@@ -31,6 +31,10 @@ class LoginController extends GetxController {
     notifyChildrens();
   });
 }
+
+  LoginModel loginModel = LoginModel();
+  List<PhoneNumberModel> sendMessagePhoneList = [];
+// 
    @override
   void onInit() {
     listenToAppRunStatus();
@@ -44,13 +48,12 @@ class LoginController extends GetxController {
     var val = await box.read("login");
     if (val != null) {
       loginModel = LoginModel.fromJson(jsonDecode(jsonEncode(val)));
+
     }
     update(['0']);
     notifyChildrens();
   }
 
-  LoginModel loginModel = LoginModel();
-  List<String> sendMessagePhoneList = [];
 
   updateList(value) {
     sendMessagePhoneList.add(value);

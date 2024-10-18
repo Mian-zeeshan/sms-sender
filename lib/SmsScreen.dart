@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_tabler_icons/flutter_tabler_icons.dart';
 import 'package:sms_sender/Controllers/LoginController.dart';
 import 'package:sms_sender/Controllers/ThemeController.dart';
 import 'package:sms_sender/Model/PhoneNumbertModel.dart';
@@ -8,7 +10,10 @@ import 'package:get/get.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'dart:developer';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:sms_sender/Utils/Utils.dart';
 import 'package:sms_sender/Widgets/SuccessDialogBox.dart';
+import 'package:sms_sender/webview_page/WebviewPage.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 class SimSelectionScreen extends StatefulWidget {
   @override
@@ -29,6 +34,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
   final FocusNode typeFocus = FocusNode();
   final FocusNode messageFocus = FocusNode();
   LoginController _loginController = Get.find();
+  Utils utils = Utils();
   String? _selectedSim = 'SIM 1'; // Default selection
   final List<String> _simOptions = ['SIM 1', 'SIM 2'];
   int simCard = 0;
@@ -40,6 +46,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
     typeFocus.unfocus();
     messageFocus.unfocus();
   }
+
 
   Future<void> requestSmsPermissions() async {
     // Request SEND_SMS permission
@@ -55,10 +62,8 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
     if (sendSmsPermissionStatus.isGranted &&
         readSmsPermissionStatus.isGranted &&
         readPhoneStatePermissionStatus.isGranted) {
-      print("All SMS and Phone permissions granted");
       // You can now send and read SMS, or access phone state
     } else {
-      print("One or more permissions denied");
       // Handle the case where one or more permissions are denied
     }
   }
@@ -73,7 +78,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
 
       await smsSender
           .sendSMS(
-              "${phn}", // The recipient's phone number
+              phoneNumber, // The recipient's phone number
               updatedMessage,
               simSlot,
               context // Specify the SIM slot (1 or 2)
@@ -85,23 +90,17 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
           // _messageController.clear();
         },
       );
-    } catch (e) {
-      print(e.toString());
-    }
+    } catch (e) {}
   }
- writeAppRunStatus() async {
-  // Get a reference to the database
-  DatabaseReference ref = FirebaseDatabase.instance.ref("appStatus");
 
-  // Set the value of the 'isAppRun' field to true
-  await ref.set({
-    "isAppRun": true
-  }).then((_) {
-    print("Data added successfully!");
-  }).catchError((error) {
-    print("Failed to add data: $error");
-  });
-}
+  writeAppRunStatus() async {
+    // Get a reference to the database
+    DatabaseReference ref = FirebaseDatabase.instance.ref("appStatus");
+
+    // Set the value of the 'isAppRun' field to true
+    await ref.set({"isAppRun": true}).then((_) {}).catchError((error) {});
+  }
+
   @override
   void initState() {
     requestSmsPermissions();
@@ -111,7 +110,9 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
       login.text = "${_loginController.loginModel.login}";
       pass.text = "${_loginController.loginModel.pass}";
       type.text = "${_loginController.loginModel.type}";
-      _selectedSim="${_loginController.loginModel.sim}";
+      _selectedSim = "${_loginController.loginModel.sim}";
+
+      simCard = _selectedSim == "SIM 1" ? 0 : 1;
     }
 
     // TODO: implement initState
@@ -144,7 +145,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                     child: SingleChildScrollView(
                       child: Column(
                         children: [
-                          SizedBox(
+                          const SizedBox(
                             height: 20,
                           ),
                           Row(
@@ -177,7 +178,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 10,
                               ),
                               Expanded(
@@ -210,8 +211,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                               ),
                             ],
                           ),
-
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
@@ -242,7 +242,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 10,
                               ),
                               Expanded(
@@ -275,8 +275,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                               ),
                             ],
                           ),
-
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           Row(
                             children: [
                               Expanded(
@@ -307,7 +306,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                   ),
                                 ),
                               ),
-                              SizedBox(
+                              const SizedBox(
                                 width: 10,
                               ),
                               Expanded(
@@ -359,7 +358,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                               ),
                             ],
                           ),
-                          SizedBox(height: 10),
+                          const SizedBox(height: 10),
                           TextField(
                             controller: _messageController,
                             focusNode: messageFocus,
@@ -384,12 +383,10 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                             ),
                             maxLines: 5, // Allow multiple lines for the message
                           ),
-                          SizedBox(height: 10),
-
+                          const SizedBox(height: 10),
                           const SizedBox(height: 20.0),
-
                           GestureDetector(
-                            onTap:() async {
+                            onTap: () async {
                               unfocusAllFields();
 
                               if (soft.text.isEmpty) {
@@ -431,8 +428,6 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                   await showPhoneNumbersDialog(
                                       context, phoneNumbers, loginCntr);
                                 }
-                              } catch (e) {
-                                print(e.toString());
                               } finally {
                                 EasyLoading.dismiss();
                               }
@@ -443,6 +438,9 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                             child: Container(
                               width: Get.width,
                               height: 45,
+                              decoration: BoxDecoration(
+                                  color: theme.primaryColor,
+                                  borderRadius: BorderRadius.circular(10)),
                               child: Center(
                                 child: Text(
                                   "Submit",
@@ -450,37 +448,170 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                                       color: theme.whiteColor, fontSize: 17),
                                 ),
                               ),
-                              decoration: BoxDecoration(
-                                  color: theme.primaryColor,
-                                  borderRadius: BorderRadius.circular(10)),
                             ),
+                          ),
+                          const SizedBox(
+                            height: 50,
+                          ),
+                          Wrap(
+                            alignment: WrapAlignment.start,
+                            crossAxisAlignment: WrapCrossAlignment.start,
+                            spacing: 10.w,
+                            runSpacing: 10.h,
+                            children: [
+                              GestureDetector(
+                                onTap: ()=>Get.to(()=>WebviewPage(title: "Today",
+                                url: "https://itlyne.com/zapiurl.php?app=tdy&soft=${loginCntr.loginModel.soft}&code=${loginCntr.loginModel.code}&login=${loginCntr.loginModel.login}&pass=${loginCntr.loginModel.pass}",)),
+                                child: Container(
+                                    height: 35.h,
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: theme.backgroundColor,
+                                        border: Border.all(
+                                            color: theme.primaryColor)),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          TablerIcons.calendar_month,
+                                          color: theme.textColor.withOpacity(0.5),
+                                          size: 15.h,
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        Text(
+                                          "Today",
+                                          style: utils
+                                              .xSmallLabelStyle(theme.textColor),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                              GestureDetector(
+                                 onTap: ()=>Get.to(()=>WebviewPage(title: "Yesterday",
+                           url: "https://itlyne.com/zapiurl.php?app=ystrdy&soft=${loginCntr.loginModel.soft}&code=${loginCntr.loginModel.code}&login=${loginCntr.loginModel.login}&pass=${loginCntr.loginModel.pass}",)),
+                                child: Container(
+                                    height: 35.h,
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: theme.backgroundColor,
+                                        border: Border.all(
+                                            color: theme.primaryColor)),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          TablerIcons.calendar_clock,
+                                          color: theme.textColor.withOpacity(0.5),
+                                          size: 15.h,
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        Text(
+                                          "Yesterday",
+                                          style: utils
+                                              .xSmallLabelStyle(theme.textColor),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                              GestureDetector(
+                                 onTap: ()=>Get.to(()=>WebviewPage(title: "This Month",
+                          url: "https://itlyne.com/zapiurl.php?app=mnth&soft=${loginCntr.loginModel.soft}&code=${loginCntr.loginModel.code}&login=${loginCntr.loginModel.login}&pass=${loginCntr.loginModel.pass}",)),
+                                child: Container(
+                                    height: 35.h,
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: theme.backgroundColor,
+                                        border: Border.all(
+                                            color: theme.primaryColor)),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          TablerIcons.calendar_bolt,
+                                          color: theme.textColor.withOpacity(0.5),
+                                          size: 15.h,
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        Text(
+                                          "This Month",
+                                          style: utils
+                                              .xSmallLabelStyle(theme.textColor),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                              GestureDetector(
+                                 onTap: ()=>Get.to(()=>WebviewPage(title: "Last Month",
+                            url: "https://itlyne.com/zapiurl.php?app=lstmnth&soft=${loginCntr.loginModel.soft}&code=${loginCntr.loginModel.code}&login=${loginCntr.loginModel.login}&pass=${loginCntr.loginModel.pass}",)),
+                                child: Container(
+                                    height: 35.h,
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: theme.backgroundColor,
+                                        border: Border.all(
+                                            color: theme.primaryColor)),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          TablerIcons.calendar,
+                                          color: theme.textColor.withOpacity(0.5),
+                                          size: 15.h,
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        Text(
+                                          "Last Month",
+                                          style: utils
+                                              .xSmallLabelStyle(theme.textColor),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                              GestureDetector(
+                                  onTap: ()=>Get.to(()=>WebviewPage(title: "Balance Sheet",
+                                 url: "https://itlyne.com/zapiurl.php?app=blsht&soft=${loginCntr.loginModel.soft}&code=${loginCntr.loginModel.code}&login=${loginCntr.loginModel.login}&pass=${loginCntr.loginModel.pass}",)),
+                               
+                                child: Container(
+                                    height: 35.h,
+                                    width: 100.w,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: theme.backgroundColor,
+                                        border: Border.all(
+                                            color: theme.primaryColor)),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Icon(
+                                          TablerIcons.file_analytics,
+                                          color: theme.textColor.withOpacity(0.5),
+                                          size: 15.h,
+                                        ),
+                                        SizedBox(
+                                          width: 2.w,
+                                        ),
+                                        Text(
+                                          "Balance Sheet",
+                                          style: utils
+                                              .xSmallLabelStyle(theme.textColor),
+                                        )
+                                      ],
+                                    )),
+                              ),
+                            ],
                           )
-                          // ElevatedButton(
-                          //   onPressed: () async {
-                          //      EasyLoading.show(status: "Sending...");
-
-                          // try{
-                          //    List<PhoneNumberModel> phoneNumbers=   await _loginController.login();
-
-                          //  if(phoneNumbers.isNotEmpty){
-                          // await   showPhoneNumbersDialog(context,phoneNumbers);
-                          //  }
-
-                          // }
-                          // catch(e){
-
-                          //   print(e.toString());
-
-                          // }
-                          // finally{
-                          //   EasyLoading.dismiss();
-                          // }
-
-                          //     // sendMessageUsingSim(simCard);
-                          //     // Clear the fields after sending
-                          //   },
-                          //   child: const Text('Send Message'),
-                          // ),
                         ],
                       ),
                     ),
@@ -497,18 +628,18 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
       builder: (BuildContext context) {
         return GetBuilder<ThemeController>(
             id: "0",
-            builder: (_theme) {
+            builder: (theme) {
               return AlertDialog(
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
-                backgroundColor: _theme.whiteColor,
+                backgroundColor: theme.whiteColor,
                 title: Text(
                   'Phone Number',
-                  style: TextStyle(color: _theme.textColor, fontSize: 20),
+                  style: utils.labelStyle(theme.textColor)
                 ),
                 content: SizedBox(
                   // You can set a height if the list is large
-                  height: 200.0,
+                  height: 220.0,
                   width: double.maxFinite,
                   child: ListView.builder(
                     shrinkWrap: true,
@@ -520,20 +651,44 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
                           children: [
                             Row(
                               children: [
+                                Icon(
+                                  Icons.phone_outlined,
+                                  color: theme.textColor.withOpacity(0.5),
+                                  size: 20,
+                                ),
+                                const SizedBox(
+                                  width: 5,
+                                ),
                                 Text(
                                   phoneNumbers[index].phone ?? '',
-                                  style: TextStyle(
-                                      color: _theme.textColor.withOpacity(0.5)),
+                                  style: TextStyle(color: theme.textColor),
                                 ),
+                                const SizedBox(width: 5),
+                                Expanded(
+                                  child: Text(
+                                    "(${phoneNumbers[index].name ?? ''})",
+                                    style: TextStyle(
+                                        color:
+                                            theme.textColor.withOpacity(0.5)),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 18,
+                                  width: 18,
+                                  child: Checkbox(
+                                    value: phoneNumbers[index].isCheck,
+                                    onChanged: (value) {
+                                      if (phoneNumbers[index].isCheck) {
+                                        phoneNumbers[index].isCheck = false;
+                                      } else {
+                                        phoneNumbers[index].isCheck = true;
+                                      }
+                                      theme.updateWidget();
+                                    },
+                                  ),
+                                )
                               ],
                             ),
-                            SizedBox(
-                              height: 7,
-                            ),
-                            Container(
-                              height: 0.5,
-                              color: _theme.textColor.withOpacity(0.3),
-                            )
                           ],
                         ),
                       );
@@ -548,24 +703,23 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
 
                       try {
                         for (int i = 0; i < phoneNumbers.length; i++) {
-                          await sendMessageUsingSim(simCard,
-                              phoneNumbers[i].phone ?? "", phoneNumbers[i]);
-                          print("dgjcvjhbdjs  " + i.toString());
+                          if (phoneNumbers[i].isCheck) {
+                            await sendMessageUsingSim(simCard,
+                                phoneNumbers[i].phone ?? "", phoneNumbers[i]);
+                          }
                         }
-                      } catch (e) {
                       } finally {
-                        print(
-                            "khdfbcjhbfhjdebcv dfvjkhbdfjhvbkjhfb ${loginCntr.sendMessagePhoneList.length}");
                         Navigator.of(context).pop();
-                       if(loginCntr.sendMessagePhoneList.isNotEmpty) showSuccessDialog(
-                            context, loginCntr.sendMessagePhoneList);
+                        if (loginCntr.sendMessagePhoneList.isNotEmpty) {
+                          showSuccessDialog(
+                              context, loginCntr.sendMessagePhoneList);
+                        }
                         EasyLoading.dismiss();
                       }
                       // Handle send message logic here
-                      print('Send Message');
                       // Close dialog
                     },
-                    child: Text('Send Message'),
+                    child: const Text('Send Message'),
                   ),
                   TextButton(
                     onPressed: () {
@@ -573,7 +727,7 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
 
                       // Close dialog
                     },
-                    child: Text('Cancel'),
+                    child: const Text('Cancel'),
                   ),
                 ],
               );
@@ -582,7 +736,8 @@ class _SimSelectionScreenState extends State<SimSelectionScreen> {
     );
   }
 
-  void showSuccessDialog(BuildContext context, List<String> phoneNumbers) {
+  void showSuccessDialog(
+      BuildContext context, List<PhoneNumberModel> phoneNumbers) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

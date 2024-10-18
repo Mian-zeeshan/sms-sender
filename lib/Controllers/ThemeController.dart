@@ -76,6 +76,12 @@ class ThemeController extends GetxController {
     update(["0"]);
   }
 
+  updateWidget(){
+
+    update(['0']);
+    notifyChildrens();
+  }
+
   void updateTheme(selectedTheme) async {
     await box.write("storageTheme", selectedTheme);
     await getTheme();

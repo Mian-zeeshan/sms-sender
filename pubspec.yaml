@@ -41,6 +41,9 @@ dependencies:
   permission_handler: ^11.3.1
   firebase_core: ^3.6.0
   firebase_database: ^11.1.4
+  flutter_tabler_icons: ^1.43.0
+  webview_flutter: ^4.10.0
+  flutter_screenutil: ^5.9.3
 
 dev_dependencies:
   flutter_test:
@@ -67,6 +70,7 @@ flutter:
   uses-material-design: true
 
   assets:
+    - Assets/Fonts/
     - Assets/Images/
 
 
@@ -86,6 +90,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
+  fonts:
+    - family: Poppins
+      fonts:
+        - asset: Assets/Fonts/Poppins-Regular.ttf
   # fonts:
   #   - family: Schyler
   #     fonts:
